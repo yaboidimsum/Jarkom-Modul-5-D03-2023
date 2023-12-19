@@ -35,6 +35,18 @@ Pada kesempatan kali ini kami akan membahas mengenai soal praktikum modul 5. Soa
   - [DHCP Relay](#dhcp-relay)
   - [Web Server](#web-server)
   - [Client](#client)
+- [Soal Praktikum](#soal-1)
+  - [Soal-1](#soal-1)
+  - [Soal-2](#soal-2)
+  - [Soal-3](#soal-3)
+  - [Soal-4](#soal-4)
+  - [Soal-5](#soal-5)
+  - [Soal-6](#soal-6)
+  - [Soal-7](#soal-7)
+  - [Soal-8](#soal-8)
+  - [Soal-9](#soal-9)
+  - [Soal-10](#soal-10)
+
 
 ## Topologi VLSM
 
@@ -481,7 +493,7 @@ apt install lynx -y
 
 Setelah berhasil melakukan [Konfigurasi](#konfigurasi) seperti diatas, sekarang jangan lupa untuk melakukan `restart (stop lalu start lagi)` pada router `Aura` karena akan digunakan pada [Soal 1](#soal-1)
 
-## Soal 1
+## Soal-1
 
 > Agar topologi yang kalian buat dapat mengakses keluar, kalian diminta untuk mengkonfigurasi Aura menggunakan iptables, tetapi tidak ingin menggunakan MASQUERADE.
 
@@ -503,7 +515,7 @@ iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to-source "$IPETH0" -s 10.23.0.
 
 ![Alt text](/img/number/no-1.png)
 
-## Soal 2
+## Soal-2
 
 > Kalian diminta untuk melakukan drop semua TCP dan UDP kecuali port 8080 pada TCP.
 
@@ -576,7 +588,7 @@ Jadi, inti dari script ini adalah memungkinkan koneksi TCP masuk hanya pada port
 
 ![Alt text](/img/number/no-2(udp-6).png)
 
-## Soal 3
+## Soal-3
 
  Kepala Suku North Area meminta kalian untuk membatasi DHCP dan DNS Server hanya dapat dilakukan ping oleh maksimal 3 device secara bersamaan, selebihnya akan di drop.
 
@@ -621,7 +633,7 @@ Dengan dua aturan tambahan ini, firewall akan mengizinkan koneksi yang sudah ter
 
 ![Alt text](/img/number/no-3(dhcp).png)
 
-## Soal 4
+## Soal-4
 
 > Lakukan pembatasan sehingga koneksi SSH pada Web Server hanya dapat dilakukan oleh masyarakat yang berada pada GrobeForest.
 
@@ -656,7 +668,7 @@ Dengan kombinasi dari kedua aturan tersebut, firewall akan mengizinkan koneksi S
 
 ![Alt text](/img/number/no-4.png)
 
-## Soal 5
+## Soal-5
 
 > Selain itu, akses menuju WebServer hanya diperbolehkan saat jam kerja yaitu Senin-Jumat pada pukul 08.00-16.00.
 
@@ -698,7 +710,7 @@ Dengan kombinasi dari ketiga aturan ini, firewall akan membatasi akses SSH ke wa
 **Gagal**
 ![Alt text](/img/number/no-5(gagal).png)
 
-## Soal 6
+## Soal-6
 
 > Lalu, karena ternyata terdapat beberapa waktu di mana network administrator dari WebServer tidak bisa stand by, sehingga perlu ditambahkan rule bahwa akses pada hari Senin - Kamis pada jam 12.00 - 13.00 dilarang (istirahat maksi cuy) dan akses di hari Jumat pada jam 11.00 - 13.00 juga dilarang (maklum, Jumatan rek).
 
@@ -747,7 +759,7 @@ Weekdays Friday
 
 ![Alt text](/img/number/no-6(gagal-2).png)
 
-## Soal 7
+## Soal-7
 
 > Karena terdapat 2 WebServer, kalian diminta agar setiap client yang mengakses Sein dengan Port 80 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan dan request dari client yang mengakses Stark dengan port 443 akan didistribusikan secara bergantian pada Sein dan Stark secara berurutan.
 
@@ -800,7 +812,7 @@ Dengan aturan-aturan ini, koneksi ke server web pada port 80 dan 443 akan didist
 
 ![Alt text](/img/number/no-7(443).png)
 
-## Soal 8
+## Soal-8
 
 > Karena berbeda koalisi politik, maka subnet dengan masyarakat yang berada pada Revolte dilarang keras mengakses WebServer hingga masa pencoblosan pemilu kepala suku 2024 berakhir. Masa pemilu (hingga pemungutan dan penghitungan suara selesai) kepala suku bersamaan dengan masa pemilu Presiden dan Wakil Presiden Indonesia 2024
 
@@ -852,7 +864,7 @@ Dengan aturan ini, akses ke WebServer pada port 80 dari subnet Revolte akan dito
 **Gagal**
 ![Alt text](/img/number/no-8(gagal).png)
 
-## Soal 9
+## Soal-9
 
 > Sadar akan adanya potensial saling serang antar kubu politik, maka WebServer harus dapat secara otomatis memblokir alamat IP yang melakukan scanning port dalam jumlah banyak (maksimal 20 scan port) di dalam selang waktu 10 menit. (clue: test dengan nmap)
 
@@ -900,7 +912,7 @@ Dengan konfigurasi ini, iptables akan secara otomatis memblokir alamat IP yang m
 
 ![Alt text](/img/number/no-9(berhasil).png)
 
-## Soal 10
+## Soal-10
 
 > Karena kepala suku ingin tau paket apa saja yang di-drop, maka di setiap node server dan router ditambahkan logging paket yang di-drop dengan standard syslog level.
 
