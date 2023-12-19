@@ -808,7 +808,19 @@ Dengan aturan-aturan ini, koneksi ke server web pada port 80 dan 443 akan didist
 
 ### Testing
 
+[Skenario 1 : Mengakses Sein dengan port 80]
+
+-   Menjalankan command `while true; do nc -l -p 80 -c 'echo "Dari Sein"'; done` pada node Sein.
+-   Menjalankan command `while true; do nc -l -p 80 -c 'echo "Dari Stark"'; done` pada node Stark.
+-   Menjalankan command `nc [IP Sein] 80` pada node LaubHills:
+
 ![Alt text](/img/number/no-7(80).png)
+
+[Skenario 2 : Mengakses Stark dengan port 443]
+
+-   Menjalankan command `while true; do nc -l -p 443 -c 'echo "Dari Sein"'; done` pada node Sein.
+-   Menjalankan command `while true; do nc -l -p 443 -c 'echo "Dari Stark"'; done` pada node Stark.
+-   Menjalankan command `nc [IP Stark] 443` pada node LaubHills:
 
 ![Alt text](/img/number/no-7(443).png)
 
@@ -859,6 +871,8 @@ Dengan aturan ini, akses ke WebServer pada port 80 dari subnet Revolte akan dito
 ### Testing
 
 **Sukses**
+
+
 ![Alt text](/img/number/no-8(berhasil).png)
 
 **Gagal**
@@ -919,27 +933,58 @@ Dengan konfigurasi ini, iptables akan secara otomatis memblokir alamat IP yang m
 ### Script
 
 ```sh
-iptables -A INPUT  -j LOG --log-level debug --log-prefix 'Dropped Packet' -m limit --limit 1/second --limit-burst 10
+iptables -I INPUT -m recent --name portscan --update --seconds 600 --hitcount 20 -j LOG --log-prefix "Portscan detected: " --log-level 4
+
+iptables -I FORWARD -m recent --name portscan --update --seconds 600 --hitcount 20 -j LOG --log-prefix "Portscan detected: " --log-level 4
 ```
 
 **Penjelasan**
 
-Script iptables yang diberikan menambahkan aturan untuk mencatat (log) paket yang ditolak (DROP) pada chain INPUT. Berikut adalah penjelasan poin-poin dalam script tersebut:
+Script iptables yang diberikan bertujuan untuk mencatat (log) deteksi pemindaian port pada chain INPUT dan FORWARD menggunakan modul "recent". Berikut adalah penjelasan poin-poin dalam skrip tersebut:
 
-```bash
-iptables -A INPUT  -j LOG --log-level debug --log-prefix 'Dropped Packet' -m limit --limit 1/second --limit-burst 10
+1. **Log deteksi pemindaian port pada chain INPUT:**
+   ```bash
+   iptables -I INPUT -m recent --name portscan --update --seconds 600 --hitcount 20 -j LOG --log-prefix "Portscan detected: " --log-level 4
+   ```
+   - Aturan ini menyisipkan (-I) aturan baru di awal chain INPUT yang memeriksa apakah ada pemindaian port yang terdeteksi. Jika ada, aturan ini akan mencatat log dengan pesan "Portscan detected: ".
+
+2. **Log deteksi pemindaian port pada chain FORWARD:**
+   ```bash
+   iptables -I FORWARD -m recent --name portscan --update --seconds 600 --hitcount 20 -j LOG --log-prefix "Portscan detected: " --log-level 4
+   ```
+   - Aturan ini menyisipkan aturan baru di awal chain FORWARD dengan tujuan yang sama seperti aturan sebelumnya, yaitu mendeteksi pemindaian port dan mencatat log jika terjadi deteksi.
+
+3. **Keterangan Tambahan:**
+   - `-m recent --name portscan --update --seconds 600 --hitcount 20`: Aturan ini menggunakan modul "recent" untuk memeriksa apakah ada pemindaian port yang terdeteksi, dengan parameter-parameter seperti waktu 600 detik (10 menit) dan hitcount 20.
+
+   - `-j LOG --log-prefix "Portscan detected: " --log-level 4`: Jika terdeteksi bahwa ada pemindaian port, aturan ini akan mencatat log dengan pesan "Portscan detected: " dan level log 4 (info). Prefix "Portscan detected: " membantu mengidentifikasi entri log yang berkaitan dengan deteksi pemindaian port.
+
+Dengan aturan-aturan ini, setiap kali ada pemindaian port yang terdeteksi (melebihi batas yang ditentukan), pesan log akan dicatat dengan prefix "Portscan detected: ". Informasi log ini dapat membantu dalam pemantauan dan deteksi aktivitas mencurigakan pada jaringan. Pastikan sistem Anda telah dikonfigurasi dengan benar untuk menangkap dan mengelola log iptables.
+
+Berdasarkan catatan log sebelumnya di mana kami telah menetapkan tingkat log 4 (peringatan), langkah selanjutnya adalah mengonfigurasi file `/etc/rsyslog.d/50-default.conf`. Kami perlu menambahkan konfigurasi kernel.warning -/var/log/iptables.log agar sesuai dengan konfigurasi berikut.
+
+```sh
+
+#
+# First some standard log files.  Log by facility.
+#
+auth,authpriv.*                 /var/log/auth.log
+*.*;auth,authpriv.none          -/var/log/syslog
+#cron.*                         /var/log/cron.log
+#daemon.*                       -/var/log/daemon.log
+kern.*                          -/var/log/kern.log
+kernel.warning                  -/var/log/iptables.log
+#lpr.*                          -/var/log/lpr.log
+mail.*                          -/var/log/mail.log
+#user.*                         -/var/log/user.log
+
+#
+# Logging for the mail system.  Split it up so that
+# it is easy to write scripts to parse these files.
+#
+#mail.info                      -/var/log/mail.info
+#mail.warn                      -/var/log/mail.warn
+mail.err                        /var/log/mail.err
 ```
-
-- `iptables -A INPUT`: Menambahkan aturan pada chain INPUT, yang berarti aturan ini akan berlaku untuk paket yang ditujukan ke sistem.
-
-- `-j LOG`: Mengarahkan paket yang memenuhi aturan ini untuk dicatat (log).
-
-- `--log-level debug`: Menentukan tingkat log sebagai "debug". Level ini akan mencakup informasi lebih rinci dalam log.
-
-- `--log-prefix 'Dropped Packet'`: Menentukan awalan (prefix) untuk setiap entri log yang dihasilkan, sehingga mempermudah identifikasi log yang berkaitan dengan paket yang ditolak.
-
-- `-m limit --limit 1/second --limit-burst 10`: Menentukan pembatasan jumlah log yang dihasilkan. Dengan konfigurasi ini, setidaknya satu entri log akan dibuat per detik, dan jika jumlah log mencapai 10 dalam satu detik, log akan dibatasi untuk menghindari terlalu banyak entri log yang diciptakan.
-
-Dengan aturan ini, setiap kali sebuah paket ditolak oleh chain INPUT, informasi log akan dicatat dengan awalan "Dropped Packet" dan level debug. Ini dapat membantu kepala suku atau administrator sistem untuk memantau aktivitas yang terkait dengan paket yang ditolak dan memahami alasan mengapa paket tersebut ditolak. Penting untuk memastikan bahwa sistem memiliki konfigurasi syslog yang tepat untuk mengarahkan log ke lokasi yang sesuai.
-
+Setelah melakukan konfigurasi, langkah selanjutnya adalah mengeksekusi perintah `touch /var/log/iptables.log` dan merestart syslog dengan menjalankan perintah `/etc/init.d/rsyslog restart`. Hal ini diperlukan untuk menerapkan konfigurasi baru ke dalam sistem syslog dan memastikan bahwa hasil log dapat direkam dengan benar dalam file iptables.log.
 ### Testing
